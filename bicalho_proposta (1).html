@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bicalho — Simulador de Proposta</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
+.header { background: #1a1a1a; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+.header-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+.header-title span { color: #FF6B00; }
+.header-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.content { padding: 28px 32px 48px; max-width: 960px; }
+.accordion { margin-bottom: 12px; border-radius: 14px; border: 0.5px solid #e0ddd5; overflow: hidden; }
+.accordion-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; background: #1a1a1a; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #fff; transition: background 0.15s; }
+.accordion-btn:hover { background: #242424; }
+.acc-icon { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,107,0,0.15); border: 0.5px solid rgba(255,107,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #FF6B00; transition: transform 0.25s; flex-shrink: 0; line-height: 1; }
+.accordion-btn.open .acc-icon { transform: rotate(45deg); }
+.acc-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.35); margin-left: 6px; }
+.accordion-body { display: none; padding: 24px; background: #fff; }
+.accordion-body.open { display: block; }
+.sec-label { font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #FF6B00; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.sec-label::after { content: ''; flex: 1; height: 0.5px; background: #ddd; }
+.card { background: #fff; border-radius: 14px; border: 0.5px solid #e0ddd5; padding: 22px 24px; margin-bottom: 16px; }
+.card-h { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #1a1a1a; }
+label { display: block; font-size: 11.5px; font-weight: 500; color: #888; margin-bottom: 6px; letter-spacing: 0.04em; }
+input[type="text"] { width: 100%; height: 40px; border: 0.5px solid #ddd; border-radius: 8px; padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1a1a1a; background: #fafaf8; transition: border-color 0.15s; outline: none; }
+input[type="text"]:focus { border-color: #FF6B00; background: #fff; }
+input.readonly { background: #f5f5f0; color: #888; cursor: default; }
+input[type="number"] { width: 100%; height: 40px; border: 0.5px solid #ddd; border-radius: 8px; padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1a1a1a; background: #fafaf8; transition: border-color 0.15s; outline: none; }
+input[type="number"]:focus { border-color: #FF6B00; background: #fff; }
+.row { display: grid; gap: 14px; margin-bottom: 14px; }
+.row-2 { grid-template-columns: 1fr 1fr; }
+.row-3 { grid-template-columns: 1fr 1fr 1fr; }
+.toggle-group { display: flex; gap: 8px; margin-bottom: 14px; }
+.toggle-btn { flex: 1; height: 38px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafaf8; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #888; cursor: pointer; transition: all 0.15s; }
+.toggle-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: #FF6B00; }
+.result-box { background: #1a1a1a; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.result-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+.result-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: #FF6B00; }
+.result-box-inner { display: flex; gap: 24px; }
+.result-item { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.sugest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.sugest-card { background: #fafaf8; border: 0.5px solid #e0ddd5; border-radius: 12px; padding: 18px; }
+.sugest-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #FF6B00; margin-bottom: 14px; }
+.baloes-area { margin-top: 14px; }
+.balao-row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 8px; align-items: end; margin-bottom: 8px; }
+.btn-rem { height: 40px; border-radius: 8px; border: 0.5px solid #ddd; background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; width: 100%; }
+.btn-rem:hover { border-color: #e24b4a; color: #e24b4a; }
+.btn-add-balao { margin-top: 8px; width: 100%; height: 36px; border-radius: 8px; border: 0.5px dashed #ddd; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #aaa; cursor: pointer; transition: all 0.15s; }
+.btn-add-balao:hover { border-color: #FF6B00; color: #FF6B00; }
+.verif-bar { background: #fff; border-radius: 12px; border: 0.5px solid #e0ddd5; padding: 16px 20px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.verif-item { text-align: center; }
+.verif-item-label { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.verif-item-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #1a1a1a; }
+.verif-item-val.ok { color: #3b6d11; }
+.verif-item-val.err { color: #e24b4a; }
+.verif-sep { width: 0.5px; height: 36px; background: #eee; }
+.prop-section { background: #f5f5f0; border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
+.prop-section-title { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-bottom: 12px; }
+.prop-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #e8e8e4; }
+.prop-row:last-child { border-bottom: none; }
+.prop-row-label { font-size: 13px; color: #555; }
+.prop-row-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #1a1a1a; }
+.prop-row-val.orange { color: #FF6B00; }
+.divider { height: 0.5px; background: #e0ddd5; margin: 20px 0; }
+.hint { font-size: 11.5px; color: #aaa; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Bicalho <span>·</span> Simulador</div>
+    <div class="header-sub">Fluxo de pagamento e proposta</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ACCORDION 1: FLUXO -->
+  <div class="accordion">
+    <button class="accordion-btn open" onclick="toggleAcc(this)">
+      <span style="display:flex;align-items:center;gap:10px;">
+        Fluxo de pagamento
+        <span class="acc-sub">Valor da unidade, entrada e parcelas</span>
+      </span>
+      <span class="acc-icon">+</span>
+    </button>
+    <div class="accordion-body open" id="acc-fluxo">
+
+    <div class="card">
+      <div class="card-h">Valor da unidade</div>
+      <div class="row row-2">
+        <div>
+          <label>Valor total da unidade (R$)</label>
+          <input type="text" id="f-unidade" placeholder="0,00" oninput="maskMoney(this); calcFluxo()" />
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <div class="result-box" style="flex:1;">
+            <span class="result-label">Valor da unidade</span>
+            <span class="result-val" id="f-unidade-display">R$ —</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Entrada</div>
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-pct" onclick="setEntradaTipo('pct')">% do valor</button>
+        <button class="toggle-btn" id="btn-rs" onclick="setEntradaTipo('rs')">Valor em R$</button>
+      </div>
+      <div id="entrada-pct-area" class="row row-2">
+        <div>
+          <label>Percentual de entrada (%)</label>
+          <input type="text" id="f-entrada-pct" placeholder="ex: 20" oninput="maskPct(this); calcFluxo()" />
+        </div>
+        <div>
+          <label>Valor da entrada (calculado)</label>
+          <input type="text" id="f-entrada-rs-calc" class="readonly" readonly placeholder="R$ —" />
+        </div>
+      </div>
+      <div id="entrada-rs-area" style="display:none;" class="row row-2">
+        <div>
+          <label>Valor da entrada (R$)</label>
+          <input type="text" id="f-entrada-rs-manual" placeholder="0,00" oninput="maskMoney(this); calcFluxo()" />
+        </div>
+        <div>
+          <label>Representa (% do valor da unidade)</label>
+          <input type="text" id="f-entrada-pct-calc" class="readonly" readonly placeholder="—%" />
+        </div>
+      </div>
+      <div class="result-box" style="margin-top:4px;">
+        <span class="result-label">Saldo restante após entrada</span>
+        <span class="result-val" id="f-saldo-apos-entrada">R$ —</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Parcelas</div>
+      <div class="sugest-grid">
+
+        <!-- S1 -->
+        <div class="sugest-card">
+          <div class="sugest-title">Sugestão 1 — valor calculado</div>
+          <div style="margin-bottom:12px;">
+            <label>Quantidade de parcelas</label>
+            <input type="number" id="s1-qtd" placeholder="ex: 36" oninput="calcS1()" />
+          </div>
+          <div style="margin-bottom:14px;">
+            <label>Valor de cada parcela (calculado)</label>
+            <input type="text" id="s1-valor" class="readonly" readonly placeholder="R$ —" />
+          </div>
+          <div class="baloes-area">
+            <div class="sugest-title" style="margin-bottom:10px;">Balões (opcional)</div>
+            <div id="s1-baloes"></div>
+            <button class="btn-add-balao" onclick="addBalao('s1')">+ adicionar balão</button>
+          </div>
+          <div class="result-box" style="margin-top:14px;flex-direction:column;align-items:stretch;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="result-label">Valor parcela</span>
+              <span class="result-val" id="s1-parcela-final">R$ —</span>
+            </div>
+            <div style="height:0.5px;background:rgba(255,255,255,0.1);"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="result-label">Valor balão (unitário)</span>
+              <span class="result-val" id="s1-balao-unit-display">R$ —</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2 -->
+        <div class="sugest-card">
+          <div class="sugest-title">Sugestão 2 — parcela definida</div>
+          <div class="row row-2" style="margin-bottom:12px;">
+            <div>
+              <label>Quantidade de parcelas</label>
+              <input type="number" id="s2-qtd" placeholder="ex: 36" oninput="calcS2()" />
+            </div>
+            <div>
+              <label>Valor de cada parcela (R$)</label>
+              <input type="text" id="s2-valor" placeholder="ex: 1.500" oninput="maskMoney(this); calcS2()" />
+            </div>
+          </div>
+          <div class="baloes-area">
+            <div class="sugest-title" style="margin-bottom:10px;">Balões (opcional)</div>
+            <div style="margin-bottom:8px;">
+              <label>Saldo restante para balões</label>
+              <input type="text" id="s2-saldo-baloes" class="readonly" readonly placeholder="R$ —" />
+            </div>
+            <div style="margin-bottom:8px;">
+              <label>Nº de balões</label>
+              <input type="number" id="s2-nbaloes" placeholder="ex: 4" oninput="calcS2()" />
+            </div>
+            <div style="margin-bottom:8px;">
+              <label>Valor de cada balão (calculado)</label>
+              <input type="text" id="s2-balao-unit" class="readonly" readonly placeholder="R$ —" />
+            </div>
+          </div>
+          <div class="result-box" style="margin-top:14px;flex-direction:column;align-items:stretch;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="result-label">Valor parcela</span>
+              <span class="result-val" id="s2-parcela-display">R$ —</span>
+            </div>
+            <div style="height:0.5px;background:rgba(255,255,255,0.1);"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="result-label">Valor balão (unitário)</span>
+              <span class="result-val" id="s2-balao-val">R$ —</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sec-label" style="margin-top:8px;">Verificação do total</div>
+
+      <div class="verif-bar">
+        <div class="verif-item"><div class="verif-item-label">Unidade</div><div class="verif-item-val" id="v-unidade">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Entrada</div><div class="verif-item-val" id="v-entrada">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Parcelas S1</div><div class="verif-item-val" id="v-parcelas-s1">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Balões S1</div><div class="verif-item-val" id="v-baloes-s1">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Total S1</div><div class="verif-item-val" id="v-total-s1">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Diferença S1</div><div class="verif-item-val" id="v-diff-s1">—</div></div>
+      </div>
+
+      <div class="verif-bar" style="margin-top:8px;">
+        <div class="verif-item"><div class="verif-item-label">Unidade</div><div class="verif-item-val" id="v-unidade2">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Entrada</div><div class="verif-item-val" id="v-entrada2">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Parcelas S2</div><div class="verif-item-val" id="v-parcelas-s2">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Balões S2</div><div class="verif-item-val" id="v-baloes-s2">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Total S2</div><div class="verif-item-val" id="v-total-s2">—</div></div>
+        <div class="verif-sep"></div>
+        <div class="verif-item"><div class="verif-item-label">Diferença S2</div><div class="verif-item-val" id="v-diff-s2">—</div></div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ACCORDION 2: PROPOSTA -->
+  <div class="accordion">
+    <button class="accordion-btn" onclick="toggleAcc(this)">
+      <span style="display:flex;align-items:center;gap:10px;">
+        Preenchimento de proposta
+        <span class="acc-sub">Comissão e valores para a Bicalho</span>
+      </span>
+      <span class="acc-icon">+</span>
+    </button>
+    <div class="accordion-body" id="acc-proposta">
+
+    <div class="card">
+      <div class="card-h">Dados da proposta</div>
+      <div class="row row-2" style="margin-bottom:14px;">
+        <div>
+          <label>Valor da unidade (R$)</label>
+          <input type="text" id="p-unidade" placeholder="0,00" oninput="maskMoney(this); calcProposta()" />
+        </div>
+        <div>
+          <label>% representada</label>
+          <input type="text" id="p-unidade-pct" class="readonly" readonly value="100%" />
+        </div>
+      </div>
+      <div class="row row-2" style="margin-bottom:14px;">
+        <div>
+          <label>Valor da entrada (R$)</label>
+          <input type="text" id="p-entrada" placeholder="0,00" oninput="maskMoney(this); calcProposta()" />
+        </div>
+        <div>
+          <label>% de entrada</label>
+          <input type="text" id="p-entrada-pct" class="readonly" readonly placeholder="—%" />
+        </div>
+      </div>
+      <div class="row row-3" style="margin-bottom:14px;">
+        <div>
+          <label>Parcelas — quantidade</label>
+          <input type="number" id="p-parc-qtd" placeholder="ex: 36" oninput="calcProposta()" />
+        </div>
+        <div>
+          <label>Valor de cada parcela (R$)</label>
+          <input type="text" id="p-parc-val" placeholder="0,00" oninput="maskMoney(this); calcProposta()" />
+        </div>
+        <div>
+          <label>Total parcelas (calculado)</label>
+          <input type="text" id="p-parc-total" class="readonly" readonly placeholder="R$ —" />
+        </div>
+      </div>
+      <div class="row row-3" style="margin-bottom:14px;">
+        <div>
+          <label>Balão — quantidade</label>
+          <input type="number" id="p-balao-qtd" placeholder="ex: 2" oninput="calcProposta()" />
+        </div>
+        <div>
+          <label>Valor de cada balão (R$)</label>
+          <input type="text" id="p-balao-val" placeholder="0,00" oninput="maskMoney(this); calcProposta()" />
+        </div>
+        <div>
+          <label>Total balões (calculado)</label>
+          <input type="text" id="p-balao-total" class="readonly" readonly placeholder="R$ —" />
+        </div>
+      </div>
+      <div class="row row-2">
+        <div>
+          <label>Comissão imob. parceira (%)</label>
+          <input type="text" id="p-comissao-pct" placeholder="ex: 1,5" oninput="maskPct(this); calcProposta()" />
+        </div>
+        <div>
+          <label>Valor da comissão (calculado)</label>
+          <input type="text" id="p-comissao-val" class="readonly" readonly placeholder="R$ —" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Proposta Bicalho</div>
+      <p class="hint" style="margin-bottom:16px;">Valores já considerando o desconto da comissão da imobiliária parceira sobre a entrada.</p>
+      <div class="prop-section">
+        <div class="prop-section-title">Valores da proposta</div>
+        <div class="prop-row"><span class="prop-row-label">Valor da unidade</span><span class="prop-row-val" id="r-unidade">R$ —</span></div>
+        <div class="prop-row"><span class="prop-row-label">Comissão imob. parceira</span><span class="prop-row-val" style="color:#e24b4a;" id="r-comissao">— R$ —</span></div>
+        <div class="prop-row" style="border-top:0.5px solid #FF6B00;margin-top:4px;padding-top:12px;">
+          <span class="prop-row-label" style="font-weight:500;color:#1a1a1a;">Valor líquido para a Bicalho</span>
+          <span class="prop-row-val orange" id="r-liquido">R$ —</span>
+        </div>
+      </div>
+      <div class="prop-section">
+        <div class="prop-section-title">Entrada</div>
+        <div class="prop-row"><span class="prop-row-label">Entrada informada</span><span class="prop-row-val" id="r-entrada-bruta">R$ —</span></div>
+        <div class="prop-row"><span class="prop-row-label">— Comissão imob. parceira</span><span class="prop-row-val" style="color:#e24b4a;" id="r-entrada-comissao">— R$ —</span></div>
+        <div class="prop-row" style="border-top:0.5px solid #e0ddd5;margin-top:4px;padding-top:12px;">
+          <span class="prop-row-label" style="font-weight:500;color:#1a1a1a;">Entrada líquida para a Bicalho</span>
+          <span class="prop-row-val orange" id="r-entrada-liquida">R$ —</span>
+        </div>
+      </div>
+      <div class="prop-section">
+        <div class="prop-section-title">Parcelas</div>
+        <div class="prop-row"><span class="prop-row-label" id="r-parc-desc">Parcelas</span><span class="prop-row-val" id="r-parc-val">R$ —</span></div>
+      </div>
+      <div class="prop-section" id="r-balao-section" style="display:none;">
+        <div class="prop-section-title">Balões</div>
+        <div class="prop-row"><span class="prop-row-label" id="r-balao-desc">Balões</span><span class="prop-row-val" id="r-balao-val">R$ —</span></div>
+      </div>
+      <div class="result-box" style="margin-top:4px;">
+        <span class="result-label">Total da proposta (conferência)</span>
+        <span class="result-val" id="r-total-conf">R$ —</span>
+      </div>
+    </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let entradaTipo = 'pct';
+let s1Baloes = [];
+let s2Baloes = [];
+
+// ── ABAS ────────────────────────────────────────────────
+function toggleAcc(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+// ── MÁSCARAS ─────────────────────────────────────────────
+function maskMoney(el) {
+  let raw = el.value.replace(/\D/g, '');
+  if (!raw) { el.value = ''; return; }
+  let num = parseInt(raw, 10) / 100;
+  el.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function maskPct(el) {
+  // permite números e vírgula/ponto
+  let val = el.value.replace(/[^\d,\.]/g, '').replace(',', '.');
+  el.value = el.value.replace(/[^\d,\.]/g, '');
+}
+
+function parseVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  let v = el.value.replace(/\./g, '').replace(',', '.');
+  return parseFloat(v) || 0;
+}
+
+function setMoney(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!val || isNaN(val)) { el.value = ''; return; }
+  el.value = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function setPct(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!val || isNaN(val)) { el.value = ''; return; }
+  // sem decimais se número inteiro
+  el.value = (val % 1 === 0 ? val.toFixed(0) : val.toFixed(2).replace('.', ',')) + '%';
+}
+
+function fmt(v) {
+  if (isNaN(v) || v === null || v === undefined) return 'R$ —';
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function setTxt(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function n(id) { return parseVal(id); }
+
+// ── ENTRADA TIPO ─────────────────────────────────────────
+function setEntradaTipo(tipo) {
+  entradaTipo = tipo;
+  document.getElementById('btn-pct').classList.toggle('active', tipo === 'pct');
+  document.getElementById('btn-rs').classList.toggle('active', tipo === 'rs');
+  document.getElementById('entrada-pct-area').style.display = tipo === 'pct' ? 'grid' : 'none';
+  document.getElementById('entrada-rs-area').style.display = tipo === 'rs' ? 'grid' : 'none';
+  calcFluxo();
+}
+
+// ── FLUXO ────────────────────────────────────────────────
+function calcFluxo() {
+  const unidade = parseVal('f-unidade');
+  setTxt('f-unidade-display', fmt(unidade));
+
+  let entrada = 0;
+  if (entradaTipo === 'pct') {
+    const pct = parseVal('f-entrada-pct');
+    entrada = unidade * pct / 100;
+    setMoney('f-entrada-rs-calc', entrada);
+  } else {
+    entrada = parseVal('f-entrada-rs-manual');
+    const pct = unidade > 0 ? (entrada / unidade * 100) : 0;
+    setPct('f-entrada-pct-calc', pct);
+  }
+
+  const saldo = unidade - entrada;
+  setTxt('f-saldo-apos-entrada', fmt(saldo));
+  calcS1(saldo, entrada, unidade);
+  calcS2(saldo, entrada, unidade);
+}
+
+function getSaldoEntrada() {
+  const unidade = parseVal('f-unidade');
+  let entrada = entradaTipo === 'pct'
+    ? unidade * parseVal('f-entrada-pct') / 100
+    : parseVal('f-entrada-rs-manual');
+  return { saldo: unidade - entrada, entrada, unidade };
+}
+
+function calcS1(saldo, entrada, unidade) {
+  if (saldo === undefined) { const r = getSaldoEntrada(); saldo=r.saldo; entrada=r.entrada; unidade=r.unidade; }
+  const qtd = parseFloat(document.getElementById('s1-qtd').value) || 0;
+
+  let totalBaloes = 0;
+  let valorUnitBalao = 0;
+  s1Baloes.forEach((_, i) => {
+    const numEl = document.getElementById('s1-balao-num-' + i);
+    const valEl = document.getElementById('s1-balao-val-' + i);
+    if (!numEl || !valEl) return;
+    const num = parseFloat(numEl.value) || 0;
+    const val = parseVal('s1-balao-val-' + i);
+    totalBaloes += num * val;
+    // guarda o valor unitário do último balão adicionado (ou o único)
+    if (val > 0) valorUnitBalao = val;
+  });
+
+  const saldoParaParcelas = saldo - totalBaloes;
+  const valorParcela = qtd > 0 ? saldoParaParcelas / qtd : 0;
+  setMoney('s1-valor', valorParcela);
+  setTxt('s1-parcela-final', fmt(valorParcela));
+  // box preto: valor UNITÁRIO do balão
+  setTxt('s1-balao-unit-display', valorUnitBalao > 0 ? fmt(valorUnitBalao) : 'R$ —');
+
+  const totalParcelas = qtd * valorParcela;
+  const totalS1 = entrada + totalParcelas + totalBaloes;
+  const diffS1 = totalS1 - unidade;
+
+  setTxt('v-unidade', fmt(unidade));
+  setTxt('v-entrada', fmt(entrada));
+  setTxt('v-parcelas-s1', fmt(totalParcelas));
+  setTxt('v-baloes-s1', fmt(totalBaloes));
+  setTxt('v-total-s1', fmt(totalS1));
+
+  const diffEl = document.getElementById('v-diff-s1');
+  if (Math.abs(diffS1) < 0.02) { diffEl.textContent = 'Confere ✓'; diffEl.className = 'verif-item-val ok'; }
+  else { diffEl.textContent = fmt(Math.abs(diffS1)); diffEl.className = 'verif-item-val err'; }
+}
+
+function calcS2(saldo, entrada, unidade) {
+  if (saldo === undefined) { const r = getSaldoEntrada(); saldo=r.saldo; entrada=r.entrada; unidade=r.unidade; }
+  const qtd = parseFloat(document.getElementById('s2-qtd').value) || 0;
+  const valorParcela = parseVal('s2-valor');
+  const totalParcelas = qtd * valorParcela;
+  setTxt('s2-parcela-display', valorParcela > 0 ? fmt(valorParcela) : 'R$ —');
+
+  const saldoBaloes = saldo - totalParcelas;
+  setMoney('s2-saldo-baloes', saldoBaloes > 0 ? saldoBaloes : 0);
+
+  const nBaloes = parseFloat(document.getElementById('s2-nbaloes').value) || 0;
+  const valorBalao = nBaloes > 0 && saldoBaloes > 0 ? saldoBaloes / nBaloes : 0;
+  setMoney('s2-balao-unit', valorBalao > 0 ? valorBalao : 0);
+  setTxt('s2-balao-val', valorBalao > 0 ? fmt(valorBalao) : 'R$ —');
+
+  const totalBaloes = nBaloes * valorBalao;
+  const totalS2 = entrada + totalParcelas + totalBaloes;
+  const diffS2 = totalS2 - unidade;
+
+  setTxt('v-unidade2', fmt(unidade));
+  setTxt('v-entrada2', fmt(entrada));
+  setTxt('v-parcelas-s2', fmt(totalParcelas));
+  setTxt('v-baloes-s2', fmt(totalBaloes));
+  setTxt('v-total-s2', fmt(totalS2));
+
+  const diffEl = document.getElementById('v-diff-s2');
+  if (Math.abs(diffS2) < 0.02) { diffEl.textContent = 'Confere ✓'; diffEl.className = 'verif-item-val ok'; }
+  else { diffEl.textContent = fmt(Math.abs(diffS2)); diffEl.className = 'verif-item-val err'; }
+}
+
+// ── BALÕES ───────────────────────────────────────────────
+function addBalao(sugest) {
+  const arr = sugest === 's1' ? s1Baloes : s2Baloes;
+  const idx = arr.length;
+  arr.push({});
+  const container = document.getElementById(sugest + '-baloes');
+  const div = document.createElement('div');
+  div.className = 'balao-row';
+  div.id = sugest + '-balao-row-' + idx;
+
+  if (sugest === 's1') {
+    div.innerHTML = `
+      <div>
+        <label>Nº do balão</label>
+        <input type="number" id="s1-balao-num-${idx}" placeholder="ex: 2" oninput="calcS1()" />
+      </div>
+      <div>
+        <label>Valor do balão (R$)</label>
+        <input type="text" id="s1-balao-val-${idx}" placeholder="0,00" oninput="maskMoney(this); calcS1()" />
+      </div>
+      <button class="btn-rem" onclick="remBalao('s1',${idx})" style="margin-top:20px;">×</button>
+    `;
+  } else {
+    div.innerHTML = `
+      <div>
+        <label>Nº do balão</label>
+        <input type="number" id="s2-balao-num-${idx}" placeholder="ex: 6" oninput="calcS2()" />
+      </div>
+      <div>
+        <label>Qtd de balões</label>
+        <input type="number" id="s2-balao-qtd-${idx}" placeholder="ex: 2" oninput="calcS2()" />
+      </div>
+      <button class="btn-rem" onclick="remBalao('s2',${idx})" style="margin-top:20px;">×</button>
+    `;
+  }
+  container.appendChild(div);
+}
+
+function remBalao(sugest, idx) {
+  const row = document.getElementById(sugest + '-balao-row-' + idx);
+  if (row) row.remove();
+  if (sugest === 's1') calcS1(); else calcS2();
+}
+
+// ── PROPOSTA ─────────────────────────────────────────────
+function calcProposta() {
+  const unidade = parseVal('p-unidade');
+  const entrada = parseVal('p-entrada');
+  const parcQtd = parseFloat(document.getElementById('p-parc-qtd').value) || 0;
+  const parcVal = parseVal('p-parc-val');
+  const balaoQtd = parseFloat(document.getElementById('p-balao-qtd').value) || 0;
+  const balaoVal = parseVal('p-balao-val');
+  const comissaoPct = parseVal('p-comissao-pct');
+
+  const entradaPct = unidade > 0 ? (entrada / unidade * 100) : 0;
+  setPct('p-entrada-pct', entradaPct);
+
+  const totalParcelas = parcQtd * parcVal;
+  setMoney('p-parc-total', totalParcelas);
+
+  const totalBaloes = balaoQtd * balaoVal;
+  setMoney('p-balao-total', totalBaloes);
+
+  const comissaoVal = unidade * comissaoPct / 100;
+  setMoney('p-comissao-val', comissaoVal);
+
+  const liquido = unidade - comissaoVal;
+  const entradaLiquida = entrada - comissaoVal;
+
+  setTxt('r-unidade', fmt(unidade));
+  setTxt('r-comissao', '— ' + fmt(comissaoVal));
+  setTxt('r-liquido', fmt(liquido));
+  setTxt('r-entrada-bruta', fmt(entrada));
+  setTxt('r-entrada-comissao', '— ' + fmt(comissaoVal));
+  setTxt('r-entrada-liquida', fmt(entradaLiquida));
+
+  if (parcQtd > 0 && parcVal > 0) {
+    setTxt('r-parc-desc', parcQtd + 'x parcelas de');
+    setTxt('r-parc-val', fmt(parcVal) + ' = ' + fmt(totalParcelas));
+  } else {
+    setTxt('r-parc-desc', 'Parcelas');
+    setTxt('r-parc-val', 'R$ —');
+  }
+
+  if (balaoQtd > 0 && balaoVal > 0) {
+    document.getElementById('r-balao-section').style.display = 'block';
+    setTxt('r-balao-desc', balaoQtd + 'x balões de');
+    setTxt('r-balao-val', fmt(balaoVal) + ' = ' + fmt(totalBaloes));
+  } else {
+    document.getElementById('r-balao-section').style.display = 'none';
+  }
+
+  const totalConf = entradaLiquida + totalParcelas + totalBaloes;
+  setTxt('r-total-conf', fmt(totalConf));
+}
+</script>
+</body>
+</html>
